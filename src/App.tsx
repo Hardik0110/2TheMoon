@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router-dom'
-import CoinTable from './components/Table'
+import CoinTable from './components/CoinTable'
 import Header from './components/Header'
 
 function App() {
