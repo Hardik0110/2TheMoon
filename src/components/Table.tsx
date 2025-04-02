@@ -5,24 +5,19 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import { fetchCoins, CoinGeckoResponse } from '../api/api';
 import Pagination from './Pagination';
+import { Coin } from '@/lib/types';
+import {
+  Card,
+  CardContent,
+} from '@/components/ui/card';
 
-interface Coin {
-  id: string;
-  rank: number;
-  name: string;
-  symbol: string;
-  price: number;
-  change1h: number | null;
-  change24h: number | null;
-  change7d: number | null;
-  volume24h: number;
-  marketCap: number;
-}
-
+console.log(fetchCoins)
 const columnHelper = createColumnHelper<Coin>();
 
 const PriceChangeCell = ({ value }: { value: number | null }) => {
@@ -36,176 +31,236 @@ const PriceChangeCell = ({ value }: { value: number | null }) => {
 };
 
 const columns = [
-  columnHelper.accessor('rank', {
-    header: '#',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('name', {
-    header: 'Coin',
-    cell: (info) => (
-      <div className="flex items-center space-x-2">
-        <span>{info.getValue()}</span>
-        <span className="text-gray-400">{info.row.original.symbol}</span>
+    columnHelper.accessor('rank', {
+      header: '#',
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('name', {
+      header: 'Coin',
+      cell: (info) => (
+        <div className="flex items-center space-x-3">
+          <img 
+            src={info.row.original.image} 
+            alt={info.getValue()} 
+            className="w-6 h-6 rounded-full"
+          />
+          <div className="flex items-center space-x-2">
+            <span>{info.getValue()}</span>
+            <span className="text-gray-400">{info.row.original.symbol}</span>
+          </div>
+        </div>
+      ),
+    }),
+  columnHelper.accessor('price', {
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        Price {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
       </div>
     ),
-  }),
-  columnHelper.accessor('price', {
-    header: 'Price',
     cell: (info) => `$${info.getValue().toLocaleString()}`,
   }),
   columnHelper.accessor('change1h', {
-    header: '1h',
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        1h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+      </div>
+    ),
     cell: (info) => <PriceChangeCell value={info.getValue()} />,
   }),
   columnHelper.accessor('change24h', {
-    header: '24h',
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        24h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+      </div>
+    ),
     cell: (info) => <PriceChangeCell value={info.getValue()} />,
   }),
   columnHelper.accessor('change7d', {
-    header: '7d',
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        7d {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+      </div>
+    ),
     cell: (info) => <PriceChangeCell value={info.getValue()} />,
   }),
   columnHelper.accessor('volume24h', {
-    header: '24h Volume',
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        24h Volume {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+      </div>
+    ),
     cell: (info) => `$${info.getValue().toLocaleString()}`,
   }),
   columnHelper.accessor('marketCap', {
-    header: 'Market Cap',
+    header: ({ column }) => (
+      <div 
+        className="cursor-pointer flex items-center gap-1" 
+        onClick={() => column.toggleSorting()}>
+        Market Cap {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+      </div>
+    ),
     cell: (info) => `$${info.getValue().toLocaleString()}`,
   }),
 ];
 
 const CoinTable = () => {
-  const navigate = useNavigate();
-  const [data, setData] = useState<Coin[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pageSize, setPageSize] = useState(50);
-  const [currentApiPage, setCurrentApiPage] = useState(1);
-  const [totalCoins, setTotalCoins] = useState(17145);
-
-  useEffect(() => {
-    const loadCoins = async () => {
-      try {
-        setLoading(true);
-        const response = await fetchCoins(currentApiPage, pageSize);
-        const formattedData: Coin[] = response.map((coin: CoinGeckoResponse) => ({
-          id: coin.id,
-          rank: coin.market_cap_rank,
-          name: coin.name,
-          symbol: coin.symbol.toUpperCase(),
-          price: coin.current_price || 0,
-          change1h: coin.price_change_percentage_1h_in_currency || null,
-          change24h: coin.price_change_percentage_24h || null,
-          change7d: coin.price_change_percentage_7d || null,
-          volume24h: coin.total_volume || 0,
-          marketCap: coin.market_cap || 0,
-        }));
-        setData(formattedData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCoins();
-  }, [currentApiPage, pageSize]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize,
+    const navigate = useNavigate();
+    const [data, setData] = useState<Coin[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [pageSize, setPageSize] = useState(50);
+    const [currentApiPage, setCurrentApiPage] = useState(1);
+    const [totalCoins] = useState(17145);
+    const [sorting, setSorting] = useState<SortingState>([]);
+  
+    useEffect(() => {
+      const loadCoins = async () => {
+        try {
+          setLoading(true);
+          const response = await fetchCoins(currentApiPage, pageSize);
+          const formattedData: Coin[] = response.map((coin: CoinGeckoResponse) => ({
+            id: coin.id,
+            rank: coin.market_cap_rank,
+            name: coin.name,
+            symbol: coin.symbol.toUpperCase(),
+            image: coin.image,
+            price: coin.current_price || 0,
+            change1h: coin.price_change_percentage_1h_in_currency || null,
+            change24h: coin.price_change_percentage_24h || null,
+            change7d: coin.price_change_percentage_7d || null,
+            volume24h: coin.total_volume || 0,
+            marketCap: coin.market_cap || 0,
+          }));
+          setData(formattedData);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      loadCoins();
+    }, [currentApiPage, pageSize]);
+  
+    const table = useReactTable({
+      data,
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      onSortingChange: setSorting,
+      state: {
+        sorting,
       },
-    },
-  });
-
-  const currentPage = table.getState().pagination.pageIndex + 1;
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentApiPage(newPage + 1);
-    table.setPageIndex(newPage);
-  };
-
-  const handlePageSizeChange = (newSize: number) => {
-    setPageSize(newSize);
-    setCurrentApiPage(1); // Reset to first page when changing page size
-    table.setPageSize(newSize);
-  };
-
-  if (loading) {
+      initialState: {
+        pagination: {
+          pageSize,
+        },
+      },
+    });
+  
+    const handlePageChange = (newPage: number) => {
+      setCurrentApiPage(newPage + 1);
+      table.setPageIndex(newPage);
+    };
+  
+    const handlePageSizeChange = (newSize: number) => {
+      setPageSize(newSize);
+      setCurrentApiPage(1);
+      table.setPageSize(newSize);
+    };
+  
+    if (loading) {
+      return (
+        <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
+          <CardContent className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+          </CardContent>
+        </Card>
+      );
+    }
+  
+    if (error) {
+      return (
+        <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
+          <CardContent className="text-red-500 text-center p-4">
+            Error loading data: {error}
+          </CardContent>
+        </Card>
+      );
+    }
+  
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
+  
+        <CardContent className="flex-1 overflow-y-auto px-0">
+          <table className="w-full border-separate border-spacing-y-2">
+            <thead className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-4 py-5 text-left text-sm font-medium text-blue-300 border-b-2 border-blue-500/20"
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  onClick={() => navigate(`/coin/${row.original.id}`)}
+                  className="cursor-pointer transition-all duration-200 bg-blue-900/5 hover:bg-indigo-900 hover:transform"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+  
+        
+            <div className="">
+                <Pagination
+                currentPage={currentApiPage}
+                totalPages={Math.ceil(totalCoins / pageSize)}
+                pageSize={pageSize}
+                totalResults={totalCoins}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                canPreviousPage={currentApiPage > 1}
+                canNextPage={currentApiPage * pageSize < totalCoins}
+                previousPage={() => handlePageChange(currentApiPage - 2)}
+                nextPage={() => handlePageChange(currentApiPage)}
+                />
+            </div>
+    
+      </Card>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-500 text-center p-4">
-        Error loading data: {error}
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-black/20 rounded-lg p-6 backdrop-blur-sm border border-blue-500/20">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-sm font-medium text-blue-300"
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                onClick={() => navigate(`/coin/${row.original.id}`)}
-                className="cursor-pointer hover:bg-purple-900/20 transition-colors border-b border-purple-500/10"
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-3 text-sm">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <Pagination
-        currentPage={currentApiPage}
-        totalPages={Math.ceil(totalCoins / pageSize)}
-        pageSize={pageSize}
-        totalResults={totalCoins}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        canPreviousPage={currentApiPage > 1}
-        canNextPage={currentApiPage * pageSize < totalCoins}
-        previousPage={() => handlePageChange(currentApiPage - 2)}
-        nextPage={() => handlePageChange(currentApiPage)}
-      />
-    </div>
-  );
-};
+  };
 
 export default CoinTable;

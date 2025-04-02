@@ -1,15 +1,4 @@
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  totalResults: number;
-  onPageChange: (pageIndex: number) => void;
-  onPageSizeChange: (newSize: number) => void;
-  canPreviousPage: boolean;
-  canNextPage: boolean;
-  previousPage: () => void;
-  nextPage: () => void;
-}
+import { PaginationProps } from "@/lib/types";
 
 const Pagination = ({
   currentPage,
@@ -120,7 +109,7 @@ const Pagination = ({
       <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="bg-blue-900/30 border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500"
+          className="bg-black border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500"
         >
           {pageSizeOptions.map((size) => (
             <option key={size} value={size}>
