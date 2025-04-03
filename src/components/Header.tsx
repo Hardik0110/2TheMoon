@@ -1,39 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Rocket, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { searchCoins } from '../api/api';
+import { useSearchCoinsQuery } from '../api/api';
 import { SearchResult } from '@/lib/types';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
 const Header = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult['coins']>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isLoading } = useSearchCoinsQuery(query);
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
-
-  useEffect(() => {
-    const handleSearch = async () => {
-      if (!debouncedQuery) {
-        setResults([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const data = await searchCoins(debouncedQuery);
-        setResults(data.coins.slice(0, 5)); 
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    handleSearch();
-  }, [debouncedQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,9 +53,9 @@ const Header = () => {
               <div className="absolute mt-2 w-full bg-black/95 rounded-lg border border-blue-500/30 shadow-lg backdrop-blur-sm overflow-hidden z-[60]">
                 {isLoading ? (
                   <div className="p-4 text-center text-blue-300">Loading...</div>
-                ) : results.length > 0 ? (
+                ) : data?.coins.length ? (
                   <div className="max-h-[300px] overflow-y-auto">
-                    {results.map((coin) => (
+                    {data.coins.slice(0, 5).map((coin) => (
                       <div
                         key={coin.id}
                         onClick={() => {
@@ -99,9 +77,9 @@ const Header = () => {
                       </div>
                     ))}
                   </div>
-                ) : query ? (
+                ) : (
                   <div className="p-4 text-center text-blue-300">No results found</div>
-                ) : null}
+                )}
               </div>
             )}
           </div>

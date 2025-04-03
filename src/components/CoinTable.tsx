@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   createColumnHelper,
@@ -9,15 +9,11 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { fetchCoins, CoinGeckoResponse } from '../api/api';
+import { useCoinsQuery } from '../api/api';
 import Pagination from './Pagination';
 import { Coin } from '@/lib/types';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
-console.log(fetchCoins)
 const columnHelper = createColumnHelper<Coin>();
 
 const PriceChangeCell = ({ value }: { value: number | null }) => {
@@ -114,153 +110,131 @@ const columns = [
 ];
 
 const CoinTable = () => {
-    const navigate = useNavigate();
-    const [data, setData] = useState<Coin[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [pageSize, setPageSize] = useState(50);
-    const [currentApiPage, setCurrentApiPage] = useState(1);
-    const [totalCoins] = useState(17145);
-    const [sorting, setSorting] = useState<SortingState>([]);
-  
-    useEffect(() => {
-      const loadCoins = async () => {
-        try {
-          setLoading(true);
-          const response = await fetchCoins(currentApiPage, pageSize);
-          const formattedData: Coin[] = response.map((coin: CoinGeckoResponse) => ({
-            id: coin.id,
-            rank: coin.market_cap_rank,
-            name: coin.name,
-            symbol: coin.symbol.toUpperCase(),
-            image: coin.image,
-            price: coin.current_price || 0,
-            change1h: coin.price_change_percentage_1h_in_currency || null,
-            change24h: coin.price_change_percentage_24h || null,
-            change7d: coin.price_change_percentage_7d || null,
-            volume24h: coin.total_volume || 0,
-            marketCap: coin.market_cap || 0,
-          }));
-          setData(formattedData);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      loadCoins();
-    }, [currentApiPage, pageSize]);
-  
-    const table = useReactTable({
-      data,
-      columns,
-      getCoreRowModel: getCoreRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      onSortingChange: setSorting,
-      state: {
-        sorting,
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const totalCoins = 17145; 
+
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error,
+    isFetching 
+  } = useCoinsQuery(currentPage, pageSize);
+
+  const table = useReactTable({
+    data: data ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
+    initialState: {
+      pagination: {
+        pageSize,
       },
-      initialState: {
-        pagination: {
-          pageSize,
-        },
-      },
-    });
-  
-    const handlePageChange = (newPage: number) => {
-      setCurrentApiPage(newPage + 1);
-      table.setPageIndex(newPage);
-    };
-  
-    const handlePageSizeChange = (newSize: number) => {
-      setPageSize(newSize);
-      setCurrentApiPage(1);
-      table.setPageSize(newSize);
-    };
-  
-    if (loading) {
-      return (
-        <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
-          <CardContent className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-          </CardContent>
-        </Card>
-      );
-    }
-  
-    if (error) {
-      return (
-        <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
-          <CardContent className="text-red-500 text-center p-4">
-            Error loading data: {error}
-          </CardContent>
-        </Card>
-      );
-    }
-  
+    },
+  });
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage + 1);
+    table.setPageIndex(newPage);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    table.setPageSize(newSize);
+  };
+
+  if (isLoading) {
     return (
-      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
-  
-        <CardContent className="flex-1 overflow-y-auto px-0">
-          <table className="w-full border-separate border-spacing-y-2">
-            <thead className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-5 text-left text-sm font-medium text-blue-300 border-b-2 border-blue-500/20"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  onClick={() => navigate(`/coin/${row.original.id}`)}
-                  className="cursor-pointer transition-all duration-200 bg-blue-900/5 hover:bg-indigo-900 hover:transform"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm">
+        <CardContent className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
         </CardContent>
-  
-        
-            <div className="">
-                <Pagination
-                currentPage={currentApiPage}
-                totalPages={Math.ceil(totalCoins / pageSize)}
-                pageSize={pageSize}
-                totalResults={totalCoins}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                canPreviousPage={currentApiPage > 1}
-                canNextPage={currentApiPage * pageSize < totalCoins}
-                previousPage={() => handlePageChange(currentApiPage - 2)}
-                nextPage={() => handlePageChange(currentApiPage)}
-                />
-            </div>
-    
       </Card>
     );
-  };
+  }
+
+  if (isError) {
+    return (
+      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm">
+        <CardContent className="text-red-500 text-center p-4">
+          Error loading data: {error.message}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm relative">
+      {isFetching && (
+        <div className="absolute top-0 left-0 right-0 h-1">
+          <div className="h-full bg-blue-500/50 animate-pulse" />
+        </div>
+      )}
+      <CardContent className="flex-1 overflow-y-auto px-0">
+        <table className="w-full border-separate border-spacing-y-2">
+          <thead className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-4 py-5 text-left text-sm font-medium text-blue-300 border-b-2 border-blue-500/20"
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                onClick={() => navigate(`/coin/${row.original.id}`)}
+                className="cursor-pointer transition-all duration-200 bg-blue-900/5 hover:bg-indigo-900 hover:transform"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+
+      <div className="">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCoins / pageSize)}
+          pageSize={pageSize}
+          totalResults={totalCoins}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          canPreviousPage={currentPage > 1}
+          canNextPage={currentPage * pageSize < totalCoins}
+          previousPage={() => handlePageChange(currentPage - 2)}
+          nextPage={() => handlePageChange(currentPage)}
+        />
+      </div>
+    </Card>
+  );
+};
 
 export default CoinTable;
