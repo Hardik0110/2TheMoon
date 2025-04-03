@@ -3,13 +3,13 @@ export interface CoinGeckoResponse {
   market_cap_rank: number;
   name: string;
   symbol: string;
+  image: string;
   current_price: number;
   price_change_percentage_1h_in_currency: number | null;
   price_change_percentage_24h: number | null;
-  price_change_percentage_7d: number | null;
+  price_change_percentage_7d_in_currency: number | null; // Add this line
   total_volume: number;
   market_cap: number;
-  image: string;
 }
 
 export interface Coin {

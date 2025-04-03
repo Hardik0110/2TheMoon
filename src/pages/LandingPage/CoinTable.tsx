@@ -1,28 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  SortingState,
-  useReactTable,
-} from '@tanstack/react-table';
-import { fetchCoins, CoinGeckoResponse } from '../api/api';
-import Pagination from './Pagination';
+import {createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel,
+        getSortedRowModel, SortingState, useReactTable, } from '@tanstack/react-table';                   
+import { fetchCoins, CoinGeckoResponse } from '../../api/api';
 import { Coin } from '@/lib/types';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead,  TableHeader, TableRow } from '@/components/ui/table';
+import Pagination from '../../components/Pagination';
 
-console.log(fetchCoins)
 const columnHelper = createColumnHelper<Coin>();
 
 const PriceChangeCell = ({ value }: { value: number | null }) => {
   if (value === null || value === undefined) {
-    return <span className="text-gray-400">--</span>;
+    return <span className="text-gray-400">Null</span>;
   }
   
   const color = value >= 0 ? 'text-green-400' : 'text-red-400';
@@ -120,7 +110,7 @@ const CoinTable = () => {
     const [error, setError] = useState<string | null>(null);
     const [pageSize, setPageSize] = useState(50);
     const [currentApiPage, setCurrentApiPage] = useState(1);
-    const [totalCoins] = useState(17145);
+    const totalCoins = 17145;
     const [sorting, setSorting] = useState<SortingState>([]);
   
     useEffect(() => {
@@ -137,7 +127,7 @@ const CoinTable = () => {
             price: coin.current_price || 0,
             change1h: coin.price_change_percentage_1h_in_currency || null,
             change24h: coin.price_change_percentage_24h || null,
-            change7d: coin.price_change_percentage_7d || null,
+            change7d: coin.price_change_percentage_7d_in_currency || null,
             volume24h: coin.total_volume || 0,
             marketCap: coin.market_cap || 0,
           }));
@@ -201,64 +191,70 @@ const CoinTable = () => {
     }
   
     return (
-      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(100vh-120px)] flex flex-col">
-  
-        <CardContent className="flex-1 overflow-y-auto px-0">
-          <table className="w-full border-separate border-spacing-y-2">
-            <thead className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-5 text-left text-sm font-medium text-blue-300 border-b-2 border-blue-500/20"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </th>
+      <Card className="bg-black/20 border-blue-500/20 backdrop-blur-sm h-[calc(95vh-120px)] flex flex-col">
+        <CardContent className="p-0 flex-1 overflow-hidden">
+          <div className="h-full flex flex-col">
+            <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-blue-500/20">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className="px-4 py-5 text-left text-sm font-medium text-blue-300"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  onClick={() => navigate(`/coin/${row.original.id}`)}
-                  className="cursor-pointer transition-all duration-200 bg-blue-900/5 hover:bg-indigo-900 hover:transform"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-  
-        
-            <div className="">
-                <Pagination
-                currentPage={currentApiPage}
-                totalPages={Math.ceil(totalCoins / pageSize)}
-                pageSize={pageSize}
-                totalResults={totalCoins}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                canPreviousPage={currentApiPage > 1}
-                canNextPage={currentApiPage * pageSize < totalCoins}
-                previousPage={() => handlePageChange(currentApiPage - 2)}
-                nextPage={() => handlePageChange(currentApiPage)}
-                />
+                </TableHeader>
+              </Table>
             </div>
     
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-blue-900/20 scrollbar-thumb-blue-500/20">
+              <Table>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      onClick={() => navigate(`/coin/${row.original.id}`)}
+                      className="cursor-pointer transition-all duration-200 bg-blue-900/5 hover:bg-indigo-900 hover:transform"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>                                                                                
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+    
+        <div className="p-2 border-t border-blue-500/20">
+          <Pagination
+            currentPage={currentApiPage}
+            totalPages={Math.ceil(totalCoins / pageSize)}
+            pageSize={pageSize}
+            totalResults={totalCoins}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            canPreviousPage={currentApiPage > 1}
+            canNextPage={currentApiPage * pageSize < totalCoins}
+            previousPage={() => handlePageChange(currentApiPage - 2)}
+            nextPage={() => handlePageChange(currentApiPage)}
+          />
+        </div>
       </Card>
     );
   };

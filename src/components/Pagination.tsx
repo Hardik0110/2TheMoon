@@ -100,7 +100,7 @@ const Pagination = ({
   };
 
   return (
-    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 pb-4">
+    <div className=" flex flex-col sm:flex-row items-center justify-between  px-2 pb-4">
       <div className="text-sm text-blue-300">
         Showing {startRow} to {endRow} of {totalResults} results
       </div>

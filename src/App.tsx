@@ -1,31 +1,26 @@
-import { BrowserRouter } from 'react-router-dom'
-import CoinTable from './components/CoinTable'
-import Header from './components/Header'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { routes } from './routes';
 
-// Create a client with improved configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 60 * 1000,
+      gcTime: 5 * 60 * 1000,
     },
   },
 });
 
+const router = createBrowserRouter(routes);
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Header />
-        <main>
-          <CoinTable />
-        </main>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;
