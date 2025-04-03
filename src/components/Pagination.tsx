@@ -1,4 +1,29 @@
-import { PaginationProps } from "@/lib/types";
+import { memo } from 'react';
+import type { PaginationProps } from "@/lib/types";
+
+// Memoized page number button for better performance
+const PageButton = memo(({ 
+  page, 
+  isActive, 
+  onClick 
+}: { 
+  page: number, 
+  isActive: boolean, 
+  onClick: () => void 
+}) => (
+  <button
+    onClick={onClick}
+    className={`px-3 py-1 rounded-md ${
+      isActive
+        ? 'bg-blue-500 text-white'
+        : 'bg-blue-900/30 hover:bg-purple-900/50'
+    }`}
+  >
+    {page}
+  </button>
+));
+
+PageButton.displayName = 'PageButton';
 
 const Pagination = ({
   currentPage,
@@ -27,45 +52,47 @@ const Pagination = ({
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
+    // First page and ellipsis
+    if (startPage > 1) {
+      pageNumbers.push(
+        <PageButton
+          key={1}
+          page={1}
+          isActive={currentPage === 1}
+          onClick={() => onPageChange(0)}
+        />
+      );
+      
+      if (startPage > 2) {
+        pageNumbers.push(<span key="ellipsis-start" aria-hidden="true">...</span>);
+      }
+    }
+
+    // Page numbers
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
-        <button
+        <PageButton
           key={i}
+          page={i}
+          isActive={currentPage === i}
           onClick={() => onPageChange(i - 1)}
-          className={`px-3 py-1 rounded-md ${
-            currentPage === i
-              ? 'bg-blue-500 text-white'
-              : 'bg-blue-900/30 hover:bg-purple-900/50'
-          }`}
-        >
-          {i}
-        </button>
+        />
       );
     }
 
-    if (startPage > 1) {
-      pageNumbers.unshift(<span key="ellipsis-start">...</span>);
-      pageNumbers.unshift(
-        <button
-          key={1}
-          onClick={() => onPageChange(0)}
-          className="px-3 py-1 rounded-md bg-purple-900/30 hover:bg-purple-900/50"
-        >
-          1
-        </button>
-      );
-    }
-
+    // Last page and ellipsis
     if (endPage < totalPages) {
-      pageNumbers.push(<span key="ellipsis-end">...</span>);
+      if (endPage < totalPages - 1) {
+        pageNumbers.push(<span key="ellipsis-end" aria-hidden="true">...</span>);
+      }
+      
       pageNumbers.push(
-        <button
+        <PageButton
           key={totalPages}
+          page={totalPages}
+          isActive={currentPage === totalPages}
           onClick={() => onPageChange(totalPages - 1)}
-          className="px-3 py-1 rounded-md bg-purple-900/30 hover:bg-purple-900/50"
-        >
-          {totalPages}
-        </button>
+        />
       );
     }
 
@@ -73,13 +100,9 @@ const Pagination = ({
   };
 
   return (
-    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div className="flex items-center space-x-4">
-        <div className="text-sm text-blue-300">
-          Showing {startRow} to {endRow} of {totalResults} results
-        </div>
-        
-        
+    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 pb-4">
+      <div className="text-sm text-blue-300">
+        Showing {startRow} to {endRow} of {totalResults} results
       </div>
       
       <div className="flex items-center justify-center flex-1">
@@ -87,7 +110,9 @@ const Pagination = ({
           <button
             onClick={previousPage}
             disabled={!canPreviousPage}
-            className="px-4 py-2 text-white bg-blue-400 rounded-md"
+            className={`px-4 py-2 text-white rounded-md ${
+              canPreviousPage ? 'bg-blue-400' : 'bg-blue-400/50 cursor-not-allowed'
+            }`}
           >
             Previous
           </button>
@@ -99,7 +124,9 @@ const Pagination = ({
           <button
             onClick={nextPage}
             disabled={!canNextPage}
-            className="px-4 py-2 text-white bg-blue-400 rounded-md"
+            className={`px-4 py-2 text-white rounded-md ${
+              canNextPage ? 'bg-blue-400' : 'bg-blue-400/50 cursor-not-allowed'
+            }`}
           >
             Next
           </button>
@@ -107,18 +134,19 @@ const Pagination = ({
       </div>
 
       <select
-          value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="bg-black border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500"
-        >
-          {pageSizeOptions.map((size) => (
-            <option key={size} value={size}>
-              {size} rows
-            </option>
-          ))}
-        </select>
+        value={pageSize}
+        onChange={(e) => onPageSizeChange(Number(e.target.value))}
+        aria-label="Rows per page"
+        className="bg-black border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500"
+      >
+        {pageSizeOptions.map((size) => (
+          <option key={size} value={size}>
+            {size} rows
+          </option>
+        ))}
+      </select>
     </div>
   );
 };
 
-export default Pagination;
+export default memo(Pagination);
