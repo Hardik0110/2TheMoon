@@ -1,15 +1,24 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { fetchCoinDetails } from '@/api/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const CoinDetails = () => {
   const { coinId } = useParams<{ coinId: string }>();
+  const navigate = useNavigate();
+  
   const { data: coin, isLoading, error } = useQuery({
     queryKey: ['coin', coinId],
     queryFn: () => fetchCoinDetails(coinId!),
     enabled: !!coinId,
   });
+
+  useEffect(() => {
+    if (error) {
+      navigate('/', { replace: true });
+    }
+  }, [error, navigate]);
 
   if (isLoading) {
     return (

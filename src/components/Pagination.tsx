@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import type { PaginationProps } from "@/lib/types";
 
-// Memoized page number button for better performance
 const PageButton = memo(({ 
   page, 
   isActive, 
@@ -13,7 +12,7 @@ const PageButton = memo(({
 }) => (
   <button
     onClick={onClick}
-    className={`px-3 py-1 rounded-md ${
+    className={`px-3 py-1 rounded-md cursor-pointer ${
       isActive
         ? 'bg-blue-500 text-white'
         : 'bg-blue-900/30 hover:bg-purple-900/50'
@@ -52,7 +51,6 @@ const Pagination = ({
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    // First page and ellipsis
     if (startPage > 1) {
       pageNumbers.push(
         <PageButton
@@ -80,7 +78,6 @@ const Pagination = ({
       );
     }
 
-    // Last page and ellipsis
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pageNumbers.push(<span key="ellipsis-end" aria-hidden="true">...</span>);
@@ -111,7 +108,7 @@ const Pagination = ({
             onClick={previousPage}
             disabled={!canPreviousPage}
             className={`px-4 py-2 text-white rounded-md ${
-              canPreviousPage ? 'bg-blue-400' : 'bg-blue-400/50 cursor-not-allowed'
+              canPreviousPage ? 'bg-blue-400 cursor-pointer' : 'bg-blue-400/50 cursor-not-allowed'
             }`}
           >
             Previous
@@ -125,7 +122,7 @@ const Pagination = ({
             onClick={nextPage}
             disabled={!canNextPage}
             className={`px-4 py-2 text-white rounded-md ${
-              canNextPage ? 'bg-blue-400' : 'bg-blue-400/50 cursor-not-allowed'
+              canNextPage ? 'bg-blue-400 cursor-pointer' : 'bg-blue-400/50 cursor-not-allowed'
             }`}
           >
             Next
@@ -137,7 +134,7 @@ const Pagination = ({
         value={pageSize}
         onChange={(e) => onPageSizeChange(Number(e.target.value))}
         aria-label="Rows per page"
-        className="bg-black border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500"
+        className="bg-black border border-blue-500/30 rounded-lg px-3 py-2 text-sm text-blue-300 focus:outline-none focus:border-blue-500 cursor-pointer"
       >
         {pageSizeOptions.map((size) => (
           <option key={size} value={size}>

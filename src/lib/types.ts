@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export interface CoinGeckoResponse {
   id: string;
   market_cap_rank: number;
@@ -7,7 +9,8 @@ export interface CoinGeckoResponse {
   current_price: number;
   price_change_percentage_1h_in_currency: number | null;
   price_change_percentage_24h: number | null;
-  price_change_percentage_7d_in_currency: number | null; // Add this line
+  price_change_percentage_7d_in_currency: number | null;
+  price_change_percentage_30d_in_currency: number | null;
   total_volume: number;
   market_cap: number;
 }
@@ -48,4 +51,43 @@ export interface SearchResult {
     thumb: string;
     large: string;
   }>;
+}
+
+export type SortOption = 
+  | 'market_cap' 
+  | 'volume' 
+  | 'id' 
+  | 'current_price'
+  | 'price_change_percentage_1h_in_currency'
+  | 'price_change_percentage_24h'
+  | 'price_change_percentage_7d_in_currency';
+
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortState {
+  sortBy: SortOption;
+  sortDirection: SortDirection;
+}
+
+export interface CoinTableQueryParams {
+  page: number;
+  pageSize: number;
+  sort?: SortState;
+}
+
+export interface CoinDetails {
+  market_cap_rank: ReactNode;
+  id: string;
+  name: string;
+  symbol: string;
+  description: { en: string };
+  market_data: {
+    current_price: { usd: number };
+    market_cap: { usd: number };
+    total_volume: { usd: number };
+    price_change_percentage_24h: number;
+    price_change_percentage_7d: number;
+    price_change_percentage_30d: number;
+  };
+  image: { large: string };
 }
