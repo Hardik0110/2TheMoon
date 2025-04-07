@@ -5,7 +5,7 @@ import {createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel,
 import { fetchCoins, CoinGeckoResponse } from '../../api/api';
 import { Coin } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead,  TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Pagination from '../../components/Pagination';
 
 const columnHelper = createColumnHelper<Coin>();
@@ -24,11 +24,12 @@ const columns = [
     columnHelper.accessor('rank', {
       header: '#',
       cell: (info) => info.getValue(),
+      size: 70, 
     }),
     columnHelper.accessor('name', {
       header: 'Coin',
       cell: (info) => (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 min-w-[200px]">
           <img 
             src={info.row.original.image} 
             alt={info.getValue()} 
@@ -40,67 +41,68 @@ const columns = [
           </div>
         </div>
       ),
+      size: 200,
     }),
-  columnHelper.accessor('price', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        Price {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => `$${info.getValue().toLocaleString()}`,
-  }),
-  columnHelper.accessor('change1h', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        1h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => <PriceChangeCell value={info.getValue()} />,
-  }),
-  columnHelper.accessor('change24h', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        24h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => <PriceChangeCell value={info.getValue()} />,
-  }),
-  columnHelper.accessor('change7d', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        7d {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => <PriceChangeCell value={info.getValue()} />,
-  }),
-  columnHelper.accessor('volume24h', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        24h Volume {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => `$${info.getValue().toLocaleString()}`,
-  }),
-  columnHelper.accessor('marketCap', {
-    header: ({ column }) => (
-      <div 
-        className="cursor-pointer flex items-center gap-1" 
-        onClick={() => column.toggleSorting()}>
-        Market Cap {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
-      </div>
-    ),
-    cell: (info) => `$${info.getValue().toLocaleString()}`,
-  }),
+    columnHelper.accessor('price', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          Price {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right">${info.getValue().toLocaleString()}</div>,
+      size: 130,
+    }),
+    columnHelper.accessor('change1h', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          1h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right"><PriceChangeCell value={info.getValue()} /></div>,
+      size: 100,
+    }),
+    columnHelper.accessor('change24h', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          24h {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right"><PriceChangeCell value={info.getValue()} /></div>,
+      size: 100,
+    }),
+    columnHelper.accessor('change7d', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          7d {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right"><PriceChangeCell value={info.getValue()} /></div>,
+      size: 100,
+    }),
+    columnHelper.accessor('volume24h', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          24h Volume {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right">${info.getValue().toLocaleString()}</div>,
+      size: 150,
+    }),
+    columnHelper.accessor('marketCap', {
+      header: ({ column }) => (
+        <div className="text-right cursor-pointer flex items-center justify-end gap-1" 
+          onClick={() => column.toggleSorting()}>
+          Market Cap {column.getIsSorted() === "asc" ? "↑" : column.getIsSorted() === "desc" ? "↓" : ""}
+        </div>
+      ),
+      cell: (info) => <div className="text-right">${info.getValue().toLocaleString()}</div>,
+      size: 150,
+    }),
 ];
 
 const CoinTable = () => {
@@ -195,20 +197,21 @@ const CoinTable = () => {
         <CardContent className="p-0 flex-1 overflow-hidden">
           <div className="h-full flex flex-col">
             <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-blue-500/20">
-              <Table>
+              <Table  className="w-full table-fixed">
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
                         <TableHead
-                          key={header.id}
-                          className="px-4 py-5 text-left text-sm font-medium text-blue-300"
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </TableHead>
+                        key={header.id}
+                        style={{ width: header.getSize() }}
+                        className="px-6 py-5 text-left text-sm font-medium text-blue-300 whitespace-nowrap"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableHead>
                       ))}
                     </TableRow>
                   ))}
@@ -217,7 +220,7 @@ const CoinTable = () => {
             </div>
     
             <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-blue-900/20 scrollbar-thumb-blue-500/20">
-              <Table>
+              <Table className="w-full table-fixed">
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
                     <TableRow
@@ -227,11 +230,12 @@ const CoinTable = () => {
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
-                          key={cell.id}
-                          className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg"
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                        className="px-4 py-4 text-sm text-gray-200 first:rounded-l-lg last:rounded-r-lg whitespace-nowrap"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                       ))}
                     </TableRow>
                   ))}
